@@ -2,9 +2,9 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -17,13 +17,25 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18   # safer than 20
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+
+      # Start backend (port 8081)
+      - name: Start backend
+        run: node backend/server.js &
+
+      # Start frontend
+      - name: Start frontend
+        run: npm start &
+
+      # Wait until both servers are ready
+      - name: Wait for servers
+        run: npx wait-on http://localhost:3000 && npx wait-on http://localhost:8081
 
       - name: Run Playwright tests
         run: npx playwright test
